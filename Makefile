@@ -17,6 +17,8 @@ END			:=	\033[0m
 # ---------------------------------------------------------------------------- #
 #               TARGETS                                                        #
 # ---------------------------------------------------------------------------- #
+.PHONY: create_env install_deps 
+
 run:	build
 	@printf "$(ERASE)$(YELLOW)"
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
@@ -48,6 +50,9 @@ clean:
 fclean:	clean
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
 	@printf "$(ERASE)$(CYAN)"
+	find . -type f -name "*.py[co]" -delete
+	find . -type d -name "__pycache__" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
 	rm -rf dist
 	@printf "$(END)"
 	@echo "++++++++++++++++++++++++++++++++++++++++ End"
