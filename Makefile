@@ -40,12 +40,8 @@ install_deps:	requirements.txt create_env
 
 clean:
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
-	@printf "$(ERASE)$(CYAN)"
-	if [ -f dist/*.whl ]; \
-	then \
-		conda run -n $(ENV_NAME) pip uninstall -y dist/*.whl ; \
-	fi ;\
-
+	@printf "$(ERASE)$(CYAN)" ; \
+ 	[ -f dist/*.whl ] && conda run -n $(ENV_NAME) pip uninstall -y dist/*.whl || true
 	@printf "$(END)"
 	@echo "++++++++++++++++++++++++++++++++++++++++ End"
 
