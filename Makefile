@@ -31,14 +31,19 @@ run:	build
 	@printf "$(END)"
 
 create_env:
-	conda create --name $(ENV_NAME) python=3.12 -y
+	@if conda info --envs | grep -q $(ENV_NAME) ; then \
+		echo "$(ENV_NAME) exist ..." ; \
+	else \
+		echo "$(ENV_NAME) not exist. Creating $(ENV_NAME) environment ..." ; \
+		conda create --name $(ENV_NAME) python=3.12 -y ; \
+	fi
 
 build:	pyproject.toml install_deps
-	conda run -n $(ENV_NAME) python -m build
-	conda run -n $(ENV_NAME) pip install dist/*.whl --force-reinstall
+	conda run -n $(ENV_NAME) python -s -m build
+	conda run -n $(ENV_NAME) pip install -q dist/*.whl --force-reinstall
 
 install_deps:	requirements.txt create_env
-	conda run -n $(ENV_NAME) pip install -r requirements.txt
+	conda run -n $(ENV_NAME) pip install -q -r requirements.txt
 
 clean:
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
@@ -50,8 +55,7 @@ clean:
 fclean:	clean
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
 	@printf "$(ERASE)$(CYAN)"
-	find . -type f -name "*.py[co]" -delete
-	find . -type d -name "__pycache__" -delete
+	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 	rm -rf dist
 	@printf "$(END)"
