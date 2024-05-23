@@ -14,7 +14,7 @@ classifiers = [
 ]
 
 [project.scripts]
-run-cli = "main:main"
+run-cli = "cli:cli"
 
 [project.urls]
 Homepage = "https://github.com/pypa/sampleproject"
