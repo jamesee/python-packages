@@ -1,6 +1,7 @@
 
-ENV_NAME = myenv
-
+ENV_NAME		:=	myenv
+MY_PACKAGES		:=	mypackages
+PYTHON_VERSION	:=	3.12
 # ---------------------------------------------------------------------------- #
 #               COLORS                                                         #
 # ---------------------------------------------------------------------------- #
@@ -13,60 +14,79 @@ YELLOW		:=	\033[33m
 GREEN		:=	\033[32m
 BOLD		:=  \033[1m
 END			:=	\033[0m
-
 # ---------------------------------------------------------------------------- #
 #               TARGETS                                                        #
 # ---------------------------------------------------------------------------- #
 
-.PHONY:	run install-deps
-run:
-	@printf "$(ERASE)$(YELLOW)"
-	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
+.PHONY:	run install-mypackages
+run:	install-mypackages
+	@printf "$(ERASE)$(YELLOW)++++++++++++++++++++++++++++++++++++++++ [$@]\n$(END)"
+	@conda run -n $(ENV_NAME) python run.py
+	@printf "$(ERASE)$(YELLOW)++++++++++++++++++++++++++++++++++++++++ End\n"
+	@echo OK!
+	@echo
 	@printf "$(END)"
-	conda run -n $(ENV_NAME) python run.py
-	@printf "$(ERASE)$(YELLOW)"
-	@echo "++++++++++++++++++++++++++++++++++++++++ End"
+
+.PHONY:	run-cli	install-mypackages
+run-cli:	install-mypackages
+	@printf "$(ERASE)$(YELLOW)++++++++++++++++++++++++++++++++++++++++ [$@]\n$(END)"
+	@conda run -n $(ENV_NAME) run-cli
+	@printf "$(ERASE)$(YELLOW)++++++++++++++++++++++++++++++++++++++++ End\n"
 	@echo OK!
 	@echo
 	@printf "$(END)"
 
 .PHONY:	init
-init:	create-env install-deps build
+init:	create-env install-deps install-mypackages
 
 .PHONY: create-env 
 create-env:
 	@if conda info --envs | grep -q $(ENV_NAME) ; then \
-		echo "$(ENV_NAME) exist ..." ; \
+		printf "\n" ; \
 	else \
-		echo "$(ENV_NAME) not exist. Creating $(ENV_NAME) environment ..." ; \
-		conda create --name $(ENV_NAME) python=3.12 -y ; \
+		printf "$(ERASE)$(GREEN)Creating $(ENV_NAME) environment ... \n$(END)" ; \
+		conda create --quiet --name $(ENV_NAME) python=$(PYTHON_VERSION) -y; \
 	fi
 
-.PHONY: build
-build:	pyproject.toml 
-	conda run -n $(ENV_NAME) pip install -e . 
+.PHONY: build-wheel
+build-wheel:	pyproject.toml 
+	conda run -n $(ENV_NAME) python -m build 
+
+.PHONY: install-mypackages
+install-mypackages:	pyproject.toml 
+	@if conda run -n $(ENV_NAME) pip list | grep -q $(MY_PACKAGES) ; then \
+		printf "\n" ; \
+	else \
+		printf "$(ERASE)$(GREEN)Installing $(MY_PACKAGES)...\n$(END)" ; \
+		conda run -n $(ENV_NAME) pip install -q -e . ; \
+	fi
 
 .PHONY: install-deps
 install-deps:	requirements.txt
+	@printf "$(ERASE)$(GREEN)Installing dependencies ... \n$(END)"
 	conda run -n $(ENV_NAME) pip install -q -r requirements.txt
 
-.PHONY: clean
-clean:
-	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
-	@printf "$(ERASE)$(CYAN)" ; \
- 	[ -f dist/*.whl ] && conda run -n $(ENV_NAME) pip uninstall -y dist/*.whl || true
-	@printf "$(END)"
-	@echo "++++++++++++++++++++++++++++++++++++++++ End"
+.PHONY: uninstall-mypackages
+uninstall-mypackages:
+	@if conda run -n $(ENV_NAME) pip list | grep -q $(MY_PACKAGES) ; then \
+		printf "$(ERASE)$(RED)Uninstalling $(MY_PACKAGES) ... \n$(END)" ; \
+		conda run -n $(ENV_NAME) pip uninstall -q -y $(MY_PACKAGES) ; \
+	else \
+		printf "$(ERASW)$(GREEN)$(MY_PACKAGES) uninstalled... \n$(END)" ; \
+	fi
 
-.PHONY: fclean
-fclean:	clean
-	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
+.PHONY:	clean
+clean:	uninstall-mypackages
+
+.PHONY: fclean 
+fclean:	
+	@printf "$(ERASE)$(YELLOW)++++++++++++++++++++++++++++++++++++++++ [$@]\n$(END)"
 	@printf "$(ERASE)$(CYAN)"
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 	rm -rf dist
 	@printf "$(END)"
-	@echo "++++++++++++++++++++++++++++++++++++++++ End"
+	@printf "$(ERASE)$(YELLOW)++++++++++++++++++++++++++++++++++++++++ End\n$(END)"
 
 .PHONY: rm-env
 rm-env:
