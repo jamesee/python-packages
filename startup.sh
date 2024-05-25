@@ -1,6 +1,6 @@
 #!/bin/bash
 
-make install_deps
+make init
 make
 make rm_env
 

@@ -1,7 +1,7 @@
 [build-system]
 requires = [
   "setuptools >= 40.9.0",
-  "wheel",
+  "setuptools-scm",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -22,8 +22,8 @@ classifiers = [
 ]
 
 [project.scripts]
-run-cli = "cli:cli"
+run-cli = "main:main"
 
 [project.urls]
 Homepage = "https://github.com/pypa/sampleproject"
-Issues = "https://github.com/pypa/sampleproject/issues"
+Issues = "https://github.cosm/pypa/sampleproject/issues"

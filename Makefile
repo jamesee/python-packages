@@ -17,9 +17,9 @@ END			:=	\033[0m
 # ---------------------------------------------------------------------------- #
 #               TARGETS                                                        #
 # ---------------------------------------------------------------------------- #
-.PHONY: create_env install_deps 
 
-run:	build
+.PHONY:	run install-deps
+run:
 	@printf "$(ERASE)$(YELLOW)"
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
 	@printf "$(END)"
@@ -30,7 +30,11 @@ run:	build
 	@echo
 	@printf "$(END)"
 
-create_env:
+.PHONY:	init
+init:	create-env install-deps build
+
+.PHONY: create-env 
+create-env:
 	@if conda info --envs | grep -q $(ENV_NAME) ; then \
 		echo "$(ENV_NAME) exist ..." ; \
 	else \
@@ -38,13 +42,15 @@ create_env:
 		conda create --name $(ENV_NAME) python=3.12 -y ; \
 	fi
 
-build:	pyproject.toml install_deps
-	conda run -n $(ENV_NAME) python -s -m build
-	conda run -n $(ENV_NAME) pip install -q dist/*.whl --force-reinstall
+.PHONY: build
+build:	pyproject.toml 
+	conda run -n $(ENV_NAME) pip install -e . 
 
-install_deps:	requirements.txt create_env
+.PHONY: install-deps
+install-deps:	requirements.txt
 	conda run -n $(ENV_NAME) pip install -q -r requirements.txt
 
+.PHONY: clean
 clean:
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
 	@printf "$(ERASE)$(CYAN)" ; \
@@ -52,6 +58,7 @@ clean:
 	@printf "$(END)"
 	@echo "++++++++++++++++++++++++++++++++++++++++ End"
 
+.PHONY: fclean
 fclean:	clean
 	@echo "++++++++++++++++++++++++++++++++++++++++ [$@]"
 	@printf "$(ERASE)$(CYAN)"
@@ -61,8 +68,10 @@ fclean:	clean
 	@printf "$(END)"
 	@echo "++++++++++++++++++++++++++++++++++++++++ End"
 
-rm_env:
+.PHONY: rm-env
+rm-env:
 	conda remove -n $(ENV_NAME) --all -y
 
+.PHONY: fclean run
 re:	fclean run
 
