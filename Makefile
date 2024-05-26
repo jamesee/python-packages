@@ -1,20 +1,6 @@
+include	Makefile.var
+include	Makefile.col
 
-ENV_NAME		:=	myenv
-MY_PACKAGES		:=	mypackages
-PYTHON_VERSION	:=	3.12
-ACTIVATE_ENV	:=	conda run -n $(ENV_NAME)
-# ---------------------------------------------------------------------------- #
-#               COLORS                                                         #
-# ---------------------------------------------------------------------------- #
-ERASE			:=	\033[2K\r
-BLUE			:=	\033[34m
-MAGENTA			:=	\033[35m
-CYAN			:=	\033[36m
-RED				:=	\033[31m
-YELLOW			:=	\033[33m
-GREEN			:=	\033[32m
-BOLD			:=  \033[1m
-END				:=	\033[0m
 # ---------------------------------------------------------------------------- #
 #               TARGETS                                                        #
 # ---------------------------------------------------------------------------- #
@@ -51,16 +37,17 @@ create-env:
 
 .PHONY: build-wheel
 build-wheel:	pyproject.toml 
-	$(ACTIVATE_ENV) python -m build 
+	$(ACTIVATE_ENV) python -m build
+	$(ACTIVATE_ENV) pip install dist/$(MY_PACKAGES)*.whl --force-reinstall 
 
 .PHONY: install-mypackages
 install-mypackages:	pyproject.toml 
-	@if $(ACTIVATE_ENV) pip list | grep -q $(MY_PACKAGES) ; then \
-		printf "\n" ; \
-	else \
-		printf "$(ERASE)$(GREEN)Installing $(MY_PACKAGES)...\n$(END)" ; \
-		$(ACTIVATE_ENV) pip install -q -e . ; \
-	fi
+		@if $(ACTIVATE_ENV) pip list | grep -q $(MY_PACKAGES) ; then \
+			printf "\n" ; \
+		else \
+			printf "$(ERASE)$(GREEN)Installing $(MY_PACKAGES)...\n$(END)" ; \
+			$(ACTIVATE_ENV) pip install -q -e . ; \
+		fi
 
 .PHONY: install-deps
 install-deps:	requirements.txt
@@ -75,6 +62,10 @@ uninstall-mypackages:
 	else \
 		printf "$(ERASE)$(GREEN)$(MY_PACKAGES) uninstalled... \n$(END)" ; \
 	fi
+
+install-conda:
+	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O /tmp/miniconda.sh
+	bash /tmp/miniconda.sh -b -p /tmp/miniconda
 
 .PHONY:	clean
 clean:	uninstall-mypackages
@@ -96,3 +87,5 @@ rm-env:
 .PHONY: fclean run
 re:	fclean run
 
+debug:
+	@echo "ENV = $(ENV)"
