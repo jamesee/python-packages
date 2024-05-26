@@ -1,3 +1,3 @@
 
 def hello2():
-    return f"Hello from hello2 updated 123"
+    return f"Hello from hello2 updated "

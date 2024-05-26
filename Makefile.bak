@@ -24,15 +24,15 @@ run-cli:	install-mypackages
 	@printf "$(END)"
 
 .PHONY:	init
-init:	create-env install-mypackages
+init:	create-env install-deps install-mypackages
 
 .PHONY: create-env 
 create-env:
 	@if conda info --envs | grep -q $(ENV_NAME) ; then \
-		printf "$(ERASE)$(GREEN)$(ENV_NAME) exists ...\n" ; \
+		printf "\n" ; \
 	else \
 		printf "$(ERASE)$(GREEN)Creating $(ENV_NAME) environment ... \n$(END)" ; \
-		conda env create -f environment.yaml > /dev/null ; \
+		conda create --quiet --name $(ENV_NAME) python=$(PYTHON_VERSION) -y; \
 	fi
 
 .PHONY: build-wheel
@@ -44,11 +44,6 @@ build-wheel:	pyproject.toml
 install-mypackages:	pyproject.toml 
 		@if $(ACTIVATE_ENV) pip list | grep -q $(MY_PACKAGES) ; then \
 			printf "\n" ; \
-		elif [ "$(ENV)" == "PROD" ]; then \
-			printf "$(ERASE)$(GREEN)Building $(MY_PACKAGES) wheel...\n$(END)" ; \
-			$(ACTIVATE_ENV) python -q -m build > /dev/null ; \
-			printf "$(ERASE)$(GREEN)Installing $(MY_PACKAGES) wheel...\n$(END)" ; \
-			$(ACTIVATE_ENV) pip install dist/$(MY_PACKAGES)*.whl -q --force-reinstall ; \
 		else \
 			printf "$(ERASE)$(GREEN)Installing $(MY_PACKAGES)...\n$(END)" ; \
 			$(ACTIVATE_ENV) pip install -q -e . ; \
@@ -69,8 +64,8 @@ uninstall-mypackages:
 	fi
 
 install-conda:
-	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
-	bash miniconda.sh -b -p ~/miniconda
+	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O /tmp/miniconda.sh
+	bash /tmp/miniconda.sh -b -p /tmp/miniconda
 
 .PHONY:	clean
 clean:	uninstall-mypackages
@@ -87,7 +82,7 @@ fclean:
 
 .PHONY: rm-env
 rm-env:
-	conda remove -n $(ENV_NAME) --all -y > /dev/null
+	conda remove -n $(ENV_NAME) --all -y
 
 .PHONY: fclean run
 re:	fclean run
